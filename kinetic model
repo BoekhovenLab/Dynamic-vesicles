@@ -54,57 +54,26 @@ for i=1:t
     CACplot(i)=CAC;
 end
 
-%//// DATA LOADING  //////
-HPLCtime=0;
-HPLCEDC = 0;
-HPLCanhy = 0;
-
-[TurbidityTime, Turbidity, HPLCtime, HPLCEDC, HPLCanhy] = data_loader(Fuel,Acid,GGD,GGE); %this will load all the data.
-
 %//// PLOTTING ////// 
 figure(1);
 subplot(2,2,1)
-plot((1:t)/60,COOH(1:t)*1000/2, '-m');  %diveded by 2 to transfer concentration of catboxyl groups into precursor concentration
+plot((1:t)/60,COOH(1:t)*1000/2, '-m');  %divided by 2 to transfer concentration of catboxyl groups into precursor concentration
 xlabel('Time [min]')
 ylabel('c(precursor) [mM]')
 xlim([0 t/60])
 ylim([0 Acid])
 
 subplot(2,2,2)
-plot (HPLCtime,HPLCanhy, 'xm');
-hold on
 plot ((1:t)/60,COOOC(1:t)*1000, '-m');
 hold on
-plot ((1:t)/60,CACplot(1:t)*1000, '-b');
 xlabel('Time [min]')
 ylabel('c(anhydride) [mM]')
 xlim([0 t/60])
 
 subplot(2,2,3)
-plot (HPLCtime,HPLCEDC, 'xm');
-hold on
 plot ((1:t)/60,EDC(1:t)*1000, '-m');
 xlabel('Time [min]')
 ylabel('c(EDC) [mM]')
 xlim([0 t/60])
 ylim([0 Fuel])
 
-subplot(2,2,4)
-plot (TurbidityTime,Turbidity, 'xm');
-hold on
-xlabel('Time [min]')
-ylabel('Turbidity [A.U.]')
-xlim([0 t/60])
-ylim([0 2])
-
-
-
-
-%sort out the data, selects every 240th datapoint (4min)
-n = 60; 
-t = transpose(1:t/60);
-EDC = transpose(1000*EDC(1 : n : end));
-COOOC = transpose(1000*COOOC(1 : n : end));
-HPLCanhy = transpose(HPLCanhy);
-HPLCtime = transpose(HPLCtime);
-COOH = transpose(1000*COOH(1 : n : end));
