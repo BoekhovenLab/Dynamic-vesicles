@@ -1,0 +1,110 @@
+%//// SETUP  //////
+clf, clear
+hr       = 3600; %amount of seconds per hour
+t        = 3*hr; %amount of hours in calculation
+plot_EDC = 0;    %Plot the [EDC]? (0 or 1)
+plot_ANH = 1;    %Plot the [anhydride]? (0 or 1)
+plot_COOH = 0;   %Plot the [COOH]? (0 or 1)
+
+%////// SET THE INITIAL CONCENTRATIONS/////
+
+GGD = 0;
+GGE = 1;
+
+Fuel = 50;         %Set the concentration fuel in mM
+Acid = 10;         %Set the concentration precursor in mM
+
+%%%%%%%SETUP_kinetic_parameters%%%%%
+
+COOH(1)   = Acid/500;
+EDC(1)    = Fuel/1000;  
+COOEDC(1) = 0;   
+COOOC(1)  = 0;  
+EDU(1)    = 0; 
+
+CAC = .8/1000;
+k0 = 1.35E-5 ;
+if GGD == 1
+    k1 = 0.09;  
+    k2 = .2; 
+    k3 = .1;
+    k4 = 0.035; 
+end
+
+if GGE ==1
+    k1 = 0.032  ;  
+    k2 = .2; 
+    k3 = .1;
+    k4 = 0.020  ;  
+end
+    
+for i=1:t
+    r0(i) = k0*EDC(i);              %EDC => EDU (direct hydrolyis)
+    r1(i) = k1*EDC(i)*COOH(i);      %COO + EDC => COOEDC
+    r2(i) = k2*COOEDC(i);           %COO + COOEDC => COOOC + EDU
+    r3(i) = k3*COOEDC(i);           %COOEDC => COO + EDCU
+    r4(i) = k4*COOOC(i);            %COOOC => 2COO  
+
+    
+    EDC(i+1) = EDC(i)-r1(i)-r0(i);  
+    COOH(i+1) = COOH(i)-r1(i)-r2(i)+2*r4(i)+r3(i);      
+    COOEDC(i+1) = COOEDC(i)+r1(i)-r2(i)-r3(i);     
+    COOOC(i+1) = COOOC(i)+r2(i)-r4(i);
+    EDU(i+1) = EDU(i)+r2(i)+r0(i)+r3(i); 
+    CACplot(i)=CAC;
+end
+
+%//// DATA LOADING  //////
+HPLCtime=0;
+HPLCEDC = 0;
+HPLCanhy = 0;
+
+[TurbidityTime, Turbidity, HPLCtime, HPLCEDC, HPLCanhy] = data_loader(Fuel,Acid,GGD,GGE); %this will load all the data.
+
+%//// PLOTTING ////// 
+figure(1);
+subplot(2,2,1)
+plot((1:t)/60,COOH(1:t)*1000/2, '-m');  %diveded by 2 to transfer concentration of catboxyl groups into precursor concentration
+xlabel('Time [min]')
+ylabel('c(precursor) [mM]')
+xlim([0 t/60])
+ylim([0 Acid])
+
+subplot(2,2,2)
+plot (HPLCtime,HPLCanhy, 'xm');
+hold on
+plot ((1:t)/60,COOOC(1:t)*1000, '-m');
+hold on
+plot ((1:t)/60,CACplot(1:t)*1000, '-b');
+xlabel('Time [min]')
+ylabel('c(anhydride) [mM]')
+xlim([0 t/60])
+
+subplot(2,2,3)
+plot (HPLCtime,HPLCEDC, 'xm');
+hold on
+plot ((1:t)/60,EDC(1:t)*1000, '-m');
+xlabel('Time [min]')
+ylabel('c(EDC) [mM]')
+xlim([0 t/60])
+ylim([0 Fuel])
+
+subplot(2,2,4)
+plot (TurbidityTime,Turbidity, 'xm');
+hold on
+xlabel('Time [min]')
+ylabel('Turbidity [A.U.]')
+xlim([0 t/60])
+ylim([0 2])
+
+
+
+
+%sort out the data, selects every 240th datapoint (4min)
+n = 60; 
+t = transpose(1:t/60);
+EDC = transpose(1000*EDC(1 : n : end));
+COOOC = transpose(1000*COOOC(1 : n : end));
+HPLCanhy = transpose(HPLCanhy);
+HPLCtime = transpose(HPLCtime);
+COOH = transpose(1000*COOH(1 : n : end));
