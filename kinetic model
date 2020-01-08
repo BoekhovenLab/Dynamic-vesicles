@@ -1,3 +1,7 @@
+% This code is written for MatLab
+% Please cite 10.1002/syst.201900044 when using this code in your work
+
+
 %//// SETUP  //////
 clf, clear
 hr       = 3600; %amount of seconds per hour
